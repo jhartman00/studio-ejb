@@ -6,6 +6,8 @@ import { z } from "zod";
 import { sql } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { bumpGallery } from "@/lib/cache";
+import { slugify, uniqueSlug } from "@/lib/slug";
+import { titleFromFilename } from "@/lib/title-from-filename";
 
 function originMatchesHeaders(h: Headers): boolean {
   const host = h.get("host");
@@ -29,14 +31,16 @@ function originMatchesHeaders(h: Headers): boolean {
 
 const slugSchema = z
   .string()
-  .min(1)
   .max(120)
-  .regex(/^[a-z0-9-]+$/, "slug must be lowercase letters, numbers, and dashes");
+  .regex(
+    /^[a-z0-9-]*$/,
+    "slug must be lowercase letters, numbers, and dashes",
+  );
 
 const galleryUpsertSchema = z.object({
   id: z.number().int().nullable().optional(),
-  slug: slugSchema,
-  title: z.string().min(1).max(200),
+  slug: slugSchema.optional().default(""),
+  title: z.string().max(200).optional().default(""),
   description: z.string().max(2000).optional().nullable(),
   tag: z.enum(["ceramics", "art", "necklaces"]),
   image_url: z.string().min(1).max(2000),
@@ -48,6 +52,7 @@ const galleryUpsertSchema = z.object({
   is_featured: z.boolean().default(false),
   show_description: z.boolean().default(true),
   show_price: z.boolean().default(true),
+  original_filename: z.string().max(255).optional().nullable(),
 });
 
 export type GalleryUpsertInput = z.input<typeof galleryUpsertSchema>;
@@ -65,17 +70,50 @@ export async function galleryUpsertAction(
   if (!parsed.success) return { ok: false, error: parsed.error.message };
 
   const v = parsed.data;
+
+  // Derive title from filename when empty; default alt to title.
+  let title = (v.title ?? "").trim();
+  if (!title && v.original_filename) {
+    title = titleFromFilename(v.original_filename);
+  }
+  if (!title) title = "Untitled";
+
+  const imageAlt = v.image_alt && v.image_alt.trim().length > 0
+    ? v.image_alt.trim()
+    : title;
+
+  // Resolve slug. On create or when the client left it blank, derive
+  // from the title and dedupe against existing slugs (excluding the
+  // current row on edit). Race window with concurrent saves is acceptable
+  // here: admin is a single writer.
+  let slug = (v.slug ?? "").trim();
+  if (!slug) {
+    try {
+      const { rows: existing } = v.id
+        ? await sql<{ slug: string }>`
+            select slug from gallery_items where id <> ${v.id}
+          `
+        : await sql<{ slug: string }>`select slug from gallery_items`;
+      slug = uniqueSlug(title, existing.map((r) => r.slug));
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : String(e) };
+    }
+  } else {
+    // Client passed a slug; normalize defensively.
+    slug = slugify(slug);
+  }
+
   try {
     let id: number;
     if (v.id) {
       const { rows } = await sql<{ id: number }>`
         update gallery_items set
-          slug = ${v.slug},
-          title = ${v.title},
+          slug = ${slug},
+          title = ${title},
           description = ${v.description ?? null},
           tag = ${v.tag},
           image_url = ${v.image_url},
-          image_alt = ${v.image_alt ?? null},
+          image_alt = ${imageAlt},
           image_width = ${v.image_width ?? null},
           image_height = ${v.image_height ?? null},
           price_note = ${v.price_note ?? null},
@@ -96,8 +134,8 @@ export async function galleryUpsertAction(
           image_width, image_height, price_note, display_order, is_featured,
           show_description, show_price
         ) values (
-          ${v.slug}, ${v.title}, ${v.description ?? null}, ${v.tag},
-          ${v.image_url}, ${v.image_alt ?? null},
+          ${slug}, ${title}, ${v.description ?? null}, ${v.tag},
+          ${v.image_url}, ${imageAlt},
           ${v.image_width ?? null}, ${v.image_height ?? null},
           ${v.price_note ?? null}, ${v.display_order}, ${v.is_featured},
           ${v.show_description}, ${v.show_price}

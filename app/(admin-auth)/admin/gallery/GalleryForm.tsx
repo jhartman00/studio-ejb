@@ -8,6 +8,8 @@ import {
   type GalleryUpsertInput,
 } from "@/app/actions/gallery";
 import type { GalleryItem } from "@/lib/db/queries";
+import { slugify } from "@/lib/slug";
+import { titleFromFilename } from "@/lib/title-from-filename";
 
 type Form = GalleryUpsertInput;
 
@@ -27,6 +29,7 @@ export default function GalleryForm({ initial }: { initial?: GalleryItem }) {
     is_featured: initial?.is_featured ?? false,
     show_description: initial?.show_description ?? true,
     show_price: initial?.show_price ?? true,
+    original_filename: null,
   });
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -36,10 +39,38 @@ export default function GalleryForm({ initial }: { initial?: GalleryItem }) {
     setForm((f) => ({ ...f, [k]: v }));
   }
 
+  function onImageChange(v: {
+    url: string;
+    width: number | null;
+    height: number | null;
+    filename?: string;
+  }) {
+    setForm((f) => {
+      const next: Form = {
+        ...f,
+        image_url: v.url,
+        image_width: v.width,
+        image_height: v.height,
+      };
+      if (v.filename) {
+        next.original_filename = v.filename;
+        if (!f.title || f.title.trim().length === 0) {
+          const derived = titleFromFilename(v.filename);
+          if (derived && derived !== "Untitled") next.title = derived;
+        }
+      }
+      return next;
+    });
+  }
+
   function save() {
     setError(null);
     start(async () => {
-      const res = await galleryUpsertAction(form);
+      // Send an empty slug on new items so the server derives + dedupes.
+      const payload: Form = form.id
+        ? form
+        : { ...form, slug: "" };
+      const res = await galleryUpsertAction(payload);
       if (!res.ok) {
         setError(res.error);
         return;
@@ -49,32 +80,27 @@ export default function GalleryForm({ initial }: { initial?: GalleryItem }) {
     });
   }
 
+  const slugPreview = form.id
+    ? form.slug
+    : slugify(form.title || titleFromFilename(form.original_filename ?? ""));
+
   return (
     <div className="editor-shell">
       {error ? <div className="form-error" role="alert">{error}</div> : null}
-      <div className="fields-grid fields-grid-2">
-        <div className="field">
-          <label htmlFor="g-title">Title</label>
-          <input
-            id="g-title"
-            type="text"
-            value={form.title}
-            onChange={(e) => patch("title", e.target.value)}
-            required
-          />
-        </div>
-        <div className="field">
-          <label htmlFor="g-slug">Slug (URL-friendly)</label>
-          <input
-            id="g-slug"
-            type="text"
-            value={form.slug}
-            onChange={(e) =>
-              patch("slug", e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))
-            }
-            required
-          />
-        </div>
+      <div className="field">
+        <label htmlFor="g-title">Title</label>
+        <input
+          id="g-title"
+          type="text"
+          value={form.title ?? ""}
+          onChange={(e) => patch("title", e.target.value)}
+          placeholder="Leave blank to use the filename"
+        />
+        {slugPreview ? (
+          <div className="field-hint">
+            URL: <code>/gallery?focus={slugPreview}</code>
+          </div>
+        ) : null}
       </div>
       <div className="field">
         <label htmlFor="g-tag">Category</label>
@@ -109,11 +135,7 @@ export default function GalleryForm({ initial }: { initial?: GalleryItem }) {
         <ImageUploader
           area="gallery"
           value={form.image_url}
-          onChange={(v) => {
-            patch("image_url", v.url);
-            patch("image_width", v.width);
-            patch("image_height", v.height);
-          }}
+          onChange={onImageChange}
         />
       </div>
       <div className="field">
@@ -123,7 +145,11 @@ export default function GalleryForm({ initial }: { initial?: GalleryItem }) {
           type="text"
           value={form.image_alt ?? ""}
           onChange={(e) => patch("image_alt", e.target.value)}
+          placeholder="Defaults to title"
         />
+        <div className="field-hint">
+          Leave blank to use the title.
+        </div>
       </div>
       <div className="field">
         <label htmlFor="g-price">Price note (optional)</label>

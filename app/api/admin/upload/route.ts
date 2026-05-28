@@ -48,9 +48,14 @@ export async function POST(req: NextRequest) {
   }
 
   const bytes = new Uint8Array(await fileEntry.arrayBuffer());
+  const filenameRaw = form.get("filename");
+  const originalFilename =
+    typeof filenameRaw === "string" && filenameRaw.length > 0
+      ? filenameRaw.slice(0, 255)
+      : null;
 
   try {
-    const out = await uploadImage({ bytes, area });
+    const out = await uploadImage({ bytes, area, originalFilename });
     return NextResponse.json(out);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);

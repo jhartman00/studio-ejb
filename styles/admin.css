@@ -367,6 +367,18 @@
   resize: vertical;
 }
 
+.field-hint {
+  font-size: var(--fs-14);
+  color: var(--ink-600);
+}
+
+.field-hint code {
+  font-size: 12px;
+  background: var(--cream-100);
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+
 .field .checkbox-row {
   display: inline-flex;
   align-items: center;

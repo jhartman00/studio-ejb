@@ -124,6 +124,7 @@ export function readImageDimensions(
 export async function uploadImage(opts: {
   bytes: Uint8Array;
   area: string;
+  originalFilename?: string | null;
 }): Promise<{ url: string; width: number | null; height: number | null }> {
   const type = sniffImageType(opts.bytes);
   if (!type) throw new Error("not a supported image type");
@@ -140,8 +141,8 @@ export async function uploadImage(opts: {
   });
 
   await sql`
-    insert into uploads (url, area, created_at)
-    values (${result.url}, ${opts.area}, now())
+    insert into uploads (url, area, original_filename, created_at)
+    values (${result.url}, ${opts.area}, ${opts.originalFilename ?? null}, now())
   `;
 
   return {
