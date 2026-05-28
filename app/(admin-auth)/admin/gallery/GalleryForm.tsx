@@ -25,6 +25,8 @@ export default function GalleryForm({ initial }: { initial?: GalleryItem }) {
     price_note: initial?.price_note ?? "",
     display_order: initial?.display_order ?? 0,
     is_featured: initial?.is_featured ?? false,
+    show_description: initial?.show_description ?? true,
+    show_price: initial?.show_price ?? true,
   });
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -93,6 +95,14 @@ export default function GalleryForm({ initial }: { initial?: GalleryItem }) {
           value={form.description ?? ""}
           onChange={(e) => patch("description", e.target.value)}
         />
+        <label className="checkbox-row" style={{ marginTop: "var(--s-8)" }}>
+          <input
+            type="checkbox"
+            checked={form.show_description ?? true}
+            onChange={(e) => patch("show_description", e.target.checked)}
+          />
+          Show description on public site
+        </label>
       </div>
       <div className="field">
         <label>Image</label>
@@ -123,6 +133,14 @@ export default function GalleryForm({ initial }: { initial?: GalleryItem }) {
           value={form.price_note ?? ""}
           onChange={(e) => patch("price_note", e.target.value)}
         />
+        <label className="checkbox-row" style={{ marginTop: "var(--s-8)" }}>
+          <input
+            type="checkbox"
+            checked={form.show_price ?? true}
+            onChange={(e) => patch("show_price", e.target.checked)}
+          />
+          Show price on public site
+        </label>
       </div>
       <div className="fields-grid fields-grid-2">
         <div className="field">

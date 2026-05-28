@@ -46,6 +46,8 @@ const galleryUpsertSchema = z.object({
   price_note: z.string().max(200).optional().nullable(),
   display_order: z.number().int().default(0),
   is_featured: z.boolean().default(false),
+  show_description: z.boolean().default(true),
+  show_price: z.boolean().default(true),
 });
 
 export type GalleryUpsertInput = z.input<typeof galleryUpsertSchema>;
@@ -79,6 +81,8 @@ export async function galleryUpsertAction(
           price_note = ${v.price_note ?? null},
           display_order = ${v.display_order},
           is_featured = ${v.is_featured},
+          show_description = ${v.show_description},
+          show_price = ${v.show_price},
           updated_at = now()
         where id = ${v.id}
         returning id
@@ -89,12 +93,14 @@ export async function galleryUpsertAction(
       const { rows } = await sql<{ id: number }>`
         insert into gallery_items (
           slug, title, description, tag, image_url, image_alt,
-          image_width, image_height, price_note, display_order, is_featured
+          image_width, image_height, price_note, display_order, is_featured,
+          show_description, show_price
         ) values (
           ${v.slug}, ${v.title}, ${v.description ?? null}, ${v.tag},
           ${v.image_url}, ${v.image_alt ?? null},
           ${v.image_width ?? null}, ${v.image_height ?? null},
-          ${v.price_note ?? null}, ${v.display_order}, ${v.is_featured}
+          ${v.price_note ?? null}, ${v.display_order}, ${v.is_featured},
+          ${v.show_description}, ${v.show_price}
         )
         returning id
       `;

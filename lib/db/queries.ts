@@ -26,6 +26,8 @@ export type GalleryItem = {
   price_note: string | null;
   display_order: number;
   is_featured: boolean;
+  show_description: boolean;
+  show_price: boolean;
 };
 
 export type Testimonial = {
@@ -127,7 +129,8 @@ export const getGalleryItems = () =>
     async () => {
       const { rows } = await sql<GalleryItem>`
         select id, slug, title, description, tag, image_url, image_alt,
-               image_width, image_height, price_note, display_order, is_featured
+               image_width, image_height, price_note, display_order, is_featured,
+               show_description, show_price
         from gallery_items
         order by display_order asc, id asc
       `;
@@ -140,7 +143,8 @@ export const getGalleryItems = () =>
 export async function getGalleryItemById(id: number): Promise<GalleryItem | null> {
   const { rows } = await sql<GalleryItem>`
     select id, slug, title, description, tag, image_url, image_alt,
-           image_width, image_height, price_note, display_order, is_featured
+           image_width, image_height, price_note, display_order, is_featured,
+           show_description, show_price
     from gallery_items
     where id = ${id}
   `;

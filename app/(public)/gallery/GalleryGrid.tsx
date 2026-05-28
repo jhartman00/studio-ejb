@@ -129,8 +129,10 @@ export default function GalleryGrid({ items }: { items: GalleryItem[] }) {
               priority
             />
             <h2 id="gallery-focus-title">{focusItem.title}</h2>
-            {focusItem.description ? <p>{focusItem.description}</p> : null}
-            {focusItem.price_note ? (
+            {focusItem.show_description && focusItem.description ? (
+              <p>{focusItem.description}</p>
+            ) : null}
+            {focusItem.show_price && focusItem.price_note ? (
               <p className="muted">{focusItem.price_note}</p>
             ) : null}
             <p>
