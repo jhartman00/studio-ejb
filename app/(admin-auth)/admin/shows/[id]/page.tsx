@@ -33,7 +33,7 @@ export default async function AdminShowEdit({
   return (
     <>
       <h1>Edit show</h1>
-      <ShowForm initial={show} />
+      <ShowForm key={show.id} initial={show} />
     </>
   );
 }
