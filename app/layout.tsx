@@ -16,6 +16,7 @@ const inter = Inter({
   display: "swap",
 });
 
+// v1 live-ready build — schema init required via /api/admin/migrate
 export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://studioejb.vercel.app",
