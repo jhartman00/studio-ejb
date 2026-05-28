@@ -5,11 +5,23 @@ import { sql } from "@/lib/db";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function escapeCsv(v: string): string {
-  if (v.includes(",") || v.includes('"') || v.includes("\n") || v.includes("\r")) {
-    return `"${v.replace(/"/g, '""')}"`;
+function escapeCsv(v: unknown): string {
+  // Coerce non-string values (Date from timestamptz, null, numbers) to a
+  // stable string representation. Date -> ISO 8601; null/undefined -> empty.
+  let s: string;
+  if (v === null || v === undefined) {
+    s = "";
+  } else if (v instanceof Date) {
+    s = v.toISOString();
+  } else if (typeof v === "string") {
+    s = v;
+  } else {
+    s = String(v);
   }
-  return v;
+  if (s.includes(",") || s.includes('"') || s.includes("\n") || s.includes("\r")) {
+    return `"${s.replace(/"/g, '""')}"`;
+  }
+  return s;
 }
 
 export async function GET(req: NextRequest) {
@@ -25,8 +37,8 @@ export async function GET(req: NextRequest) {
     email: string;
     status: string;
     source: string | null;
-    subscribed_at: string;
-    unsubscribed_at: string | null;
+    subscribed_at: Date | string;
+    unsubscribed_at: Date | string | null;
   }>`
     select email, status, source, subscribed_at, unsubscribed_at
     from email_subscribers
@@ -40,9 +52,9 @@ export async function GET(req: NextRequest) {
       [
         escapeCsv(r.email),
         escapeCsv(r.status),
-        escapeCsv(r.source || ""),
+        escapeCsv(r.source),
         escapeCsv(r.subscribed_at),
-        escapeCsv(r.unsubscribed_at || ""),
+        escapeCsv(r.unsubscribed_at),
       ].join(","),
     );
   }

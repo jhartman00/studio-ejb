@@ -80,9 +80,13 @@ export default function GalleryForm({ initial }: { initial?: GalleryItem }) {
     });
   }
 
+  // Only show a URL preview once the user has typed a title or uploaded a
+  // file. Otherwise it would default to "untitled" and be misleading.
   const slugPreview = form.id
     ? form.slug
-    : slugify(form.title || titleFromFilename(form.original_filename ?? ""));
+    : form.title || form.original_filename
+      ? slugify(form.title || titleFromFilename(form.original_filename ?? ""))
+      : "";
 
   return (
     <div className="editor-shell">
