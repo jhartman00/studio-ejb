@@ -8,6 +8,7 @@ import { requireAdmin } from "@/lib/auth";
 import { bumpGallery } from "@/lib/cache";
 import { slugify, uniqueSlug } from "@/lib/slug";
 import { titleFromFilename } from "@/lib/title-from-filename";
+import { optionalId } from "@/lib/zod-helpers";
 
 function originMatchesHeaders(h: Headers): boolean {
   const host = h.get("host");
@@ -38,7 +39,7 @@ const slugSchema = z
   );
 
 const galleryUpsertSchema = z.object({
-  id: z.number().int().nullable().optional(),
+  id: optionalId,
   slug: slugSchema.optional().default(""),
   title: z.string().max(200).optional().default(""),
   description: z.string().max(2000).optional().nullable(),
@@ -154,11 +155,14 @@ export async function galleryUpsertAction(
   }
 }
 
-export async function galleryDeleteAction(id: number): Promise<ActionResult> {
+export async function galleryDeleteAction(rawId: number | string): Promise<ActionResult> {
   const h = await headers();
   if (!originMatchesHeaders(h)) return { ok: false, error: "bad origin" };
   const adm = await requireAdmin();
   if (!adm.ok) return { ok: false, error: "not authenticated" };
+
+  const id = typeof rawId === "number" ? rawId : Number(rawId);
+  if (!Number.isFinite(id)) return { ok: false, error: "invalid id" };
 
   try {
     await sql`delete from gallery_items where id = ${id}`;

@@ -15,6 +15,7 @@ import {
   oneClickUnsubscribeUrl,
 } from "@/lib/email/templates";
 import { sanitizeHtml } from "@/lib/sanitize";
+import { optionalId, requiredId } from "@/lib/zod-helpers";
 
 function originMatchesHeaders(h: Headers): boolean {
   const host = h.get("host");
@@ -37,7 +38,7 @@ function originMatchesHeaders(h: Headers): boolean {
 }
 
 const draftSchema = z.object({
-  id: z.number().int().nullable().optional(),
+  id: optionalId,
   subject: z.string().min(1).max(998).refine((s) => !/[\r\n]/.test(s), "no line breaks"),
   preheader: z.string().max(300).optional().nullable(),
   body_html: z.string().min(1).max(200000),
@@ -87,7 +88,7 @@ export async function campaignDraftAction(
 }
 
 const testSendSchema = z.object({
-  id: z.number().int(),
+  id: requiredId,
   toEmail: z.string().email().max(254),
 });
 

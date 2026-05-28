@@ -6,6 +6,7 @@ import { z } from "zod";
 import { sql } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { bumpReviews } from "@/lib/cache";
+import { optionalId } from "@/lib/zod-helpers";
 
 function originMatchesHeaders(h: Headers): boolean {
   const host = h.get("host");
@@ -28,7 +29,7 @@ function originMatchesHeaders(h: Headers): boolean {
 }
 
 const testimonialUpsertSchema = z.object({
-  id: z.number().int().nullable().optional(),
+  id: optionalId,
   quote: z.string().min(1).max(2000),
   attribution: z.string().min(1).max(200),
   location: z.string().max(120).optional().nullable(),
@@ -89,11 +90,14 @@ export async function testimonialUpsertAction(
   }
 }
 
-export async function testimonialDeleteAction(id: number): Promise<ActionResult> {
+export async function testimonialDeleteAction(rawId: number | string): Promise<ActionResult> {
   const h = await headers();
   if (!originMatchesHeaders(h)) return { ok: false, error: "bad origin" };
   const adm = await requireAdmin();
   if (!adm.ok) return { ok: false, error: "not authenticated" };
+
+  const id = typeof rawId === "number" ? rawId : Number(rawId);
+  if (!Number.isFinite(id)) return { ok: false, error: "invalid id" };
 
   try {
     await sql`delete from testimonials where id = ${id}`;

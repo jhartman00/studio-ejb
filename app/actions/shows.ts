@@ -6,6 +6,7 @@ import { z } from "zod";
 import { sql } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { bumpShows } from "@/lib/cache";
+import { optionalId } from "@/lib/zod-helpers";
 
 function originMatchesHeaders(h: Headers): boolean {
   const host = h.get("host");
@@ -29,7 +30,7 @@ function originMatchesHeaders(h: Headers): boolean {
 
 const showUpsertSchema = z
   .object({
-    id: z.number().int().nullable().optional(),
+    id: optionalId,
     name: z.string().min(1).max(200),
     city: z.string().max(120).optional().nullable(),
     venue: z.string().max(200).optional().nullable(),
@@ -100,11 +101,14 @@ export async function showUpsertAction(raw: ShowUpsertInput): Promise<ActionResu
   }
 }
 
-export async function showDeleteAction(id: number): Promise<ActionResult> {
+export async function showDeleteAction(rawId: number | string): Promise<ActionResult> {
   const h = await headers();
   if (!originMatchesHeaders(h)) return { ok: false, error: "bad origin" };
   const adm = await requireAdmin();
   if (!adm.ok) return { ok: false, error: "not authenticated" };
+
+  const id = typeof rawId === "number" ? rawId : Number(rawId);
+  if (!Number.isFinite(id)) return { ok: false, error: "invalid id" };
 
   try {
     await sql`delete from trade_shows where id = ${id}`;

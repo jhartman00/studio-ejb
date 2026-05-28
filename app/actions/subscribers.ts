@@ -60,11 +60,13 @@ export async function subscriberAddAction(
   }
 }
 
-export async function subscriberSuppressAction(id: number): Promise<SubscribersResult> {
+export async function subscriberSuppressAction(rawId: number | string): Promise<SubscribersResult> {
   const h = await headers();
   if (!originMatchesHeaders(h)) return { ok: false, error: "bad origin" };
   const adm = await requireAdmin();
   if (!adm.ok) return { ok: false, error: "not authenticated" };
+  const id = typeof rawId === "number" ? rawId : Number(rawId);
+  if (!Number.isFinite(id)) return { ok: false, error: "invalid id" };
   try {
     await sql`
       update email_subscribers
