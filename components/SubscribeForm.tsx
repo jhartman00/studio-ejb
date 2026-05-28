@@ -35,9 +35,14 @@ export default function SubscribeForm({ source }: { source?: string }) {
         />
       </div>
       <div style={{ display: "flex", gap: "var(--s-8)" }}>
+        <label htmlFor="sub-email" className="sr-only">
+          Email address
+        </label>
         <input
+          id="sub-email"
           name="email"
           type="email"
+          autoComplete="email"
           required
           placeholder="you@example.com"
           maxLength={254}

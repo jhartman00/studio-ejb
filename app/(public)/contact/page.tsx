@@ -1,5 +1,22 @@
+import type { Metadata } from "next";
 import { getPageSections, pickSection } from "@/lib/db/queries";
 import ContactForm from "./ContactForm";
+
+export const metadata: Metadata = {
+  title: "Contact — Studio EJB",
+  description:
+    "Get in touch with Studio EJB about commissions, wholesale, press, or upcoming work.",
+  alternates: {
+    canonical: "/contact",
+  },
+  openGraph: {
+    title: "Contact — Studio EJB",
+    description:
+      "Get in touch with Studio EJB about commissions, wholesale, press, or upcoming work.",
+    url: "/contact",
+    type: "website",
+  },
+};
 
 type SearchParams = Promise<{ ref?: string }>;
 

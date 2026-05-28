@@ -1,5 +1,22 @@
+import type { Metadata } from "next";
 import { getPageSections, getPublishedShows, pickSection } from "@/lib/db/queries";
 import ShowList from "./ShowList";
+
+export const metadata: Metadata = {
+  title: "Shows — Studio EJB",
+  description:
+    "Upcoming and past trade shows, markets, and events where you can find Studio EJB work in person.",
+  alternates: {
+    canonical: "/shows",
+  },
+  openGraph: {
+    title: "Shows — Studio EJB",
+    description:
+      "Upcoming and past trade shows, markets, and events where you can find Studio EJB work in person.",
+    url: "/shows",
+    type: "website",
+  },
+};
 
 export default async function ShowsPage() {
   let shows: Awaited<ReturnType<typeof getPublishedShows>> = [];

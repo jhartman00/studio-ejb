@@ -1,6 +1,23 @@
+import type { Metadata } from "next";
 import { getPageSections, pickSection } from "@/lib/db/queries";
 import { sanitizeHtml } from "@/lib/sanitize";
 import SafeImage from "@/components/SafeImage";
+
+export const metadata: Metadata = {
+  title: "About — Studio EJB",
+  description:
+    "About Emma and Studio EJB — ceramics, art, and small jewelry handmade in the studio.",
+  alternates: {
+    canonical: "/about",
+  },
+  openGraph: {
+    title: "About — Studio EJB",
+    description:
+      "About Emma and Studio EJB — ceramics, art, and small jewelry handmade in the studio.",
+    url: "/about",
+    type: "website",
+  },
+};
 
 export default async function AboutPage() {
   let sections: Awaited<ReturnType<typeof getPageSections>> = [];

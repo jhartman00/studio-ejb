@@ -1,5 +1,22 @@
+import type { Metadata } from "next";
 import { getPageSections, getPublishedTestimonials, pickSection } from "@/lib/db/queries";
 import { notFound } from "next/navigation";
+
+export const metadata: Metadata = {
+  title: "Reviews — Studio EJB",
+  description:
+    "Kind words from collectors and customers of Studio EJB ceramics, art, and jewelry.",
+  alternates: {
+    canonical: "/reviews",
+  },
+  openGraph: {
+    title: "Reviews — Studio EJB",
+    description:
+      "Kind words from collectors and customers of Studio EJB ceramics, art, and jewelry.",
+    url: "/reviews",
+    type: "website",
+  },
+};
 
 export default async function ReviewsPage() {
   let reviews: Awaited<ReturnType<typeof getPublishedTestimonials>> = [];
