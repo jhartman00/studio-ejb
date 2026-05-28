@@ -6,6 +6,7 @@ import {
 } from "@/lib/db/queries";
 import { sanitizeHtml } from "@/lib/sanitize";
 import SafeImage from "@/components/SafeImage";
+import SubscribeForm from "@/components/SubscribeForm";
 import Link from "next/link";
 
 export default async function HomePage() {
@@ -126,7 +127,7 @@ export default async function HomePage() {
             <section className="section" key={s.id}>
               {newsletter.data.title ? <h2>{newsletter.data.title}</h2> : null}
               {newsletter.data.body ? <p>{newsletter.data.body}</p> : null}
-              <p className="muted">Signup form lands in the next phase.</p>
+              <SubscribeForm source="home" />
             </section>
           );
         }
