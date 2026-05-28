@@ -2,10 +2,11 @@ import { revalidateTag } from "next/cache";
 
 // Cache tag conventions for unstable_cache + revalidateTag.
 //
-// Tags are scoped by domain. Reads wrap data fetches in unstable_cache
-// with the matching tag. Writes (Server Actions, route handlers) call
-// the bumpX helper here after the mutation commits, so the next page
-// render fetches fresh data instead of the cached value.
+// Tags are scoped by domain. Reads in lib/db/queries.ts wrap data
+// fetches in unstable_cache with the matching tag. Writes (admin
+// Server Actions and admin route handlers) call the bumpX helper
+// here after the mutation commits, so the next public-page render
+// fetches fresh data instead of the cached value.
 //
 //   site_content:<page>    -> Public page sections for a single page.
 //   gallery                -> All gallery_items reads.
@@ -14,9 +15,18 @@ import { revalidateTag } from "next/cache";
 //   subscribers            -> Subscribers count / list reads.
 //   campaigns              -> Campaign list + detail reads.
 //
+// Cross-resource bumps:
+//   gallery edit  -> also bumps site_content:home (home featured grid)
+//   shows edit    -> also bumps site_content:home (home next-show card)
+//
 // Pattern: one tag per logical resource. Pages that aggregate multiple
 // resources (home: site_content + gallery + shows) get revalidated when
 // ANY of their underlying tags fire — Next caches per-tag, not per-key.
+//
+// Verification (Phase 3.5): a dev-only POST /api/admin/_dev/bump-cache
+// lets you manually invalidate any tag while next dev is running, to
+// confirm the public page picks up the change on next request. The
+// endpoint is cookie-gated and returns 404 in production.
 
 export const tags = {
   siteContent: (page: string) => `site_content:${page}`,
