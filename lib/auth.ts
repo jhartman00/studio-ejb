@@ -1,17 +1,14 @@
 import { cookies } from "next/headers";
 import { createHmac, timingSafeEqual, createHash } from "node:crypto";
 import type { NextRequest } from "next/server";
+import {
+  ADMIN_MAX_AGE,
+  CURRENT_KID,
+  adminCookieName,
+} from "./auth-constants";
 
-// Cookie name uses the __Host- prefix: requires Secure + Path=/ + no Domain.
-// In dev, browsers refuse __Host- without Secure; we fall back to a plain
-// cookie name when NODE_ENV !== 'production'.
-export const ADMIN_COOKIE_PROD = "__Host-sejb_admin";
-export const ADMIN_COOKIE_DEV = "sejb_admin_dev";
-export const ADMIN_COOKIE_NAME =
-  process.env.NODE_ENV === "production" ? ADMIN_COOKIE_PROD : ADMIN_COOKIE_DEV;
-
-export const ADMIN_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
-export const CURRENT_KID = 1;
+export const ADMIN_COOKIE_NAME = adminCookieName();
+export { ADMIN_MAX_AGE, CURRENT_KID };
 
 type SessionPayload = {
   kid: number;
