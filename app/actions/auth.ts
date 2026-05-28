@@ -54,58 +54,57 @@ export async function loginAction(
   const h = await headers();
   const ip = ipFromHeaders(h);
 
-  // Wrap everything so any unexpected error still hits the uniform delay.
+  // Wrap everything so every path — success, rate-limit, lockout, bad password,
+  // system error — falls through to the uniform delay below. No early returns.
   let outcome: "success" | "failed" = "failed";
   let nextUrl = "/admin";
   try {
-    if (!originMatches(h)) return { error: GENERIC_ERROR };
+    if (originMatches(h)) {
+      const ratelim = await rateLimit({
+        bucket: "login",
+        identifier: ip,
+        windowSec: 60,
+        max: 5,
+      });
 
-    const ratelim = await rateLimit({
-      bucket: "login",
-      identifier: ip,
-      windowSec: 60,
-      max: 5,
-    });
-    if (!ratelim.ok) return { error: GENERIC_ERROR };
+      const locked = await isLoginLocked(ip);
 
-    if (await isLoginLocked(ip)) return { error: GENERIC_ERROR };
+      const passwordRaw = formData.get("password");
+      const password = typeof passwordRaw === "string" ? passwordRaw : "";
+      const next = formData.get("next");
+      if (typeof next === "string" && next.startsWith("/admin") && !next.startsWith("//")) {
+        nextUrl = next;
+      }
 
-    const passwordRaw = formData.get("password");
-    const password = typeof passwordRaw === "string" ? passwordRaw : "";
-    const next = formData.get("next");
-    if (typeof next === "string" && next.startsWith("/admin") && !next.startsWith("//")) {
-      nextUrl = next;
+      const expected = process.env.ADMIN_PASSWORD ?? "";
+      const passwordOk =
+        password.length > 0 &&
+        expected.length > 0 &&
+        comparePasswords(password, expected);
+
+      if (ratelim.ok && !locked && passwordOk) {
+        await clearLoginFailures(ip);
+
+        const token = signSession({
+          kid: CURRENT_KID,
+          iat: Math.floor(Date.now() / 1000),
+        });
+
+        const cookieStore = await cookies();
+        cookieStore.set({
+          name: ADMIN_COOKIE_NAME,
+          value: token,
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+          path: "/",
+          maxAge: ADMIN_MAX_AGE,
+        });
+        outcome = "success";
+      } else if (ratelim.ok && !locked) {
+        await recordLoginFailure(ip);
+      }
     }
-
-    const expected = process.env.ADMIN_PASSWORD ?? "";
-    if (password.length === 0 || expected.length === 0) {
-      await recordLoginFailure(ip);
-      return { error: GENERIC_ERROR };
-    }
-
-    if (!comparePasswords(password, expected)) {
-      await recordLoginFailure(ip);
-      return { error: GENERIC_ERROR };
-    }
-
-    await clearLoginFailures(ip);
-
-    const token = signSession({
-      kid: CURRENT_KID,
-      iat: Math.floor(Date.now() / 1000),
-    });
-
-    const cookieStore = await cookies();
-    cookieStore.set({
-      name: ADMIN_COOKIE_NAME,
-      value: token,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/",
-      maxAge: ADMIN_MAX_AGE,
-    });
-    outcome = "success";
   } catch {
     outcome = "failed";
   }
