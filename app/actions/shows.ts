@@ -44,6 +44,10 @@ const showUpsertSchema = z
   .refine(
     (v) => !Number.isNaN(Date.parse(v.starts_at)) && !Number.isNaN(Date.parse(v.ends_at)),
     { message: "starts_at and ends_at must be valid ISO timestamps" },
+  )
+  .refine(
+    (v) => Date.parse(v.ends_at) >= Date.parse(v.starts_at),
+    { message: "ends_at must be on or after starts_at", path: ["ends_at"] },
   );
 
 export type ShowUpsertInput = z.input<typeof showUpsertSchema>;
