@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Studio EJB",
     description: "Ceramics, art, and small jewelry by Emma.",
-    images: ["/og-default.jpg"],
+    images: ["/og-default.svg"],
     type: "website",
   },
   icons: {
