@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { getGalleryItems } from "@/lib/db/queries";
-import DeleteButton from "./DeleteButton";
+import SortableList from "./SortableList";
 
 export const dynamic = "force-dynamic";
 
@@ -24,22 +24,15 @@ export default async function AdminGallery() {
           </p>
         </div>
       ) : (
-        <div className="admin-list">
-          {items.map((g) => (
-            <div key={g.id} className="admin-list-card">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={g.image_url} alt="" />
-              <div style={{ flex: 1 }}>
-                <strong>{g.title}</strong>
-                <div className="meta">{g.tag} · {g.slug}</div>
-                <div className="actions">
-                  <a href={`/admin/gallery/${g.id}`} className="btn">Edit</a>
-                  <DeleteButton id={g.id} title={g.title} />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <SortableList
+          initialItems={items.map((g) => ({
+            id: Number(g.id),
+            title: g.title,
+            slug: g.slug,
+            tag: g.tag,
+            image_url: g.image_url,
+          }))}
+        />
       )}
     </>
   );

@@ -2,7 +2,14 @@
 
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
+
+// Tiptap value sync: the parent calls onChange on every keystroke, which
+// re-renders us with a new `value` prop. Without guarding, the effect below
+// would then call setContent on every keystroke and clobber the user's
+// selection (space swallowed, delete jumps the cursor). The fix: stash the
+// HTML we just emitted in lastSetRef from inside onUpdate so the effect only
+// resyncs when an *external* parent (e.g. Discard changes) sets a new value.
 
 type Props = {
   value: string;
@@ -11,11 +18,16 @@ type Props = {
 };
 
 export default function RichText({ value, onChange, ariaLabel }: Props) {
+  const lastSetRef = useRef<string>(value || "");
+  const extensions = useMemo(() => [StarterKit], []);
+
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions,
     content: value || "",
     onUpdate({ editor }) {
-      onChange(editor.getHTML());
+      const html = editor.getHTML();
+      lastSetRef.current = html;
+      onChange(html);
     },
     editorProps: {
       attributes: {
@@ -26,7 +38,6 @@ export default function RichText({ value, onChange, ariaLabel }: Props) {
     immediatelyRender: false,
   });
 
-  const lastSetRef = useRef<string>(value || "");
   useEffect(() => {
     if (!editor) return;
     if (value !== lastSetRef.current) {

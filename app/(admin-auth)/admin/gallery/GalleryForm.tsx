@@ -10,6 +10,7 @@ import {
 import type { GalleryItem } from "@/lib/db/queries";
 import { slugify } from "@/lib/slug";
 import { titleFromFilename } from "@/lib/title-from-filename";
+import { CATEGORY_VALUES, CATEGORY_LABELS } from "@/lib/content/categories";
 
 type Form = GalleryUpsertInput;
 
@@ -113,9 +114,11 @@ export default function GalleryForm({ initial }: { initial?: GalleryItem }) {
           value={form.tag}
           onChange={(e) => patch("tag", e.target.value as Form["tag"])}
         >
-          <option value="ceramics">Ceramics</option>
-          <option value="art">Art</option>
-          <option value="necklaces">Necklaces</option>
+          {CATEGORY_VALUES.map((value) => (
+            <option key={value} value={value}>
+              {CATEGORY_LABELS[value]}
+            </option>
+          ))}
         </select>
       </div>
       <div className="field">

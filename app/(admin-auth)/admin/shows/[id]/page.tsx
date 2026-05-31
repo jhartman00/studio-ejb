@@ -2,6 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { sql } from "@/lib/db";
 import type { TradeShow } from "@/lib/db/queries";
+import AdminBackBar from "@/components/AdminBackBar";
 import ShowForm from "../ShowForm";
 
 export const dynamic = "force-dynamic";
@@ -17,6 +18,7 @@ export default async function AdminShowEdit({
   if (idParam === "new") {
     return (
       <>
+        <AdminBackBar href="/admin/shows" label="Back to shows" />
         <h1>Add show</h1>
         <ShowForm />
       </>
@@ -32,6 +34,7 @@ export default async function AdminShowEdit({
   if (!show) notFound();
   return (
     <>
+      <AdminBackBar href="/admin/shows" label="Back to shows" />
       <h1>Edit show</h1>
       <ShowForm key={show.id} initial={show} />
     </>

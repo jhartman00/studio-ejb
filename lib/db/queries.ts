@@ -2,6 +2,7 @@ import { unstable_cache } from "next/cache";
 import { sql } from "./index";
 import { parseSection, type SectionKey, type SectionData } from "../content/schemas";
 import { tags } from "../cache";
+import type { CategoryValue } from "../content/categories";
 
 export type SiteContentRow = {
   id: number;
@@ -18,7 +19,7 @@ export type GalleryItem = {
   slug: string;
   title: string;
   description: string | null;
-  tag: "ceramics" | "art" | "necklaces";
+  tag: CategoryValue;
   image_url: string;
   image_alt: string | null;
   image_width: number | null;
@@ -28,16 +29,6 @@ export type GalleryItem = {
   is_featured: boolean;
   show_description: boolean;
   show_price: boolean;
-};
-
-export type Testimonial = {
-  id: number;
-  quote: string;
-  attribution: string;
-  location: string | null;
-  source_label: string | null;
-  display_order: number;
-  is_published: boolean;
 };
 
 export type TradeShow = {
@@ -149,32 +140,6 @@ export async function getGalleryItemById(id: number): Promise<GalleryItem | null
     where id = ${id}
   `;
   return rows[0] ?? null;
-}
-
-// --- testimonials -----------------------------------------------------
-
-export const getPublishedTestimonials = () =>
-  unstable_cache(
-    async () => {
-      const { rows } = await sql<Testimonial>`
-        select id, quote, attribution, location, source_label, display_order, is_published
-        from testimonials
-        where is_published = true
-        order by display_order asc, created_at desc
-      `;
-      return rows;
-    },
-    ["testimonials", "published"],
-    { tags: [tags.reviews()] },
-  )();
-
-export async function getAllTestimonials() {
-  const { rows } = await sql<Testimonial>`
-    select id, quote, attribution, location, source_label, display_order, is_published
-    from testimonials
-    order by display_order asc, created_at desc
-  `;
-  return rows;
 }
 
 // --- trade shows ------------------------------------------------------

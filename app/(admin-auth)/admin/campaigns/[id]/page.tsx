@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/auth";
 import { getCampaignById } from "@/lib/db/queries";
 import { sql } from "@/lib/db";
 import { isPlaceholderAddress } from "@/lib/email/templates";
+import AdminBackBar from "@/components/AdminBackBar";
 import CampaignComposer from "../CampaignComposer";
 import CampaignDetail from "./CampaignDetail";
 
@@ -31,29 +32,35 @@ export default async function AdminCampaignDetail({
 
   if (campaign.status === "draft" || campaign.status === "failed") {
     return (
-      <CampaignComposer
-        initial={{
-          id: campaign.id,
-          subject: campaign.subject,
-          preheader: campaign.preheader,
-          body_html: campaign.body_html,
-        }}
-        activeSubscribers={activeSubs}
-        sendBlockedReason={
-          blocked
-            ? "STUDIO_MAILING_ADDRESS missing or placeholder"
-            : noResend
-              ? "RESEND_API_KEY missing"
-              : null
-        }
-      />
+      <>
+        <AdminBackBar href="/admin/campaigns" label="Back to campaigns" />
+        <CampaignComposer
+          initial={{
+            id: campaign.id,
+            subject: campaign.subject,
+            preheader: campaign.preheader,
+            body_html: campaign.body_html,
+          }}
+          activeSubscribers={activeSubs}
+          sendBlockedReason={
+            blocked
+              ? "STUDIO_MAILING_ADDRESS missing or placeholder"
+              : noResend
+                ? "RESEND_API_KEY missing"
+                : null
+          }
+        />
+      </>
     );
   }
 
   return (
-    <CampaignDetail
-      campaign={campaign}
-      activeSubscribers={activeSubs}
-    />
+    <>
+      <AdminBackBar href="/admin/campaigns" label="Back to campaigns" />
+      <CampaignDetail
+        campaign={campaign}
+        activeSubscribers={activeSubs}
+      />
+    </>
   );
 }
