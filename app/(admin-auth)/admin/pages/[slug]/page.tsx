@@ -1,6 +1,7 @@
 import { redirect, notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { getPageSections, getGalleryItems } from "@/lib/db/queries";
+import AdminBackBar from "@/components/AdminBackBar";
 import PageEditor from "./PageEditor";
 
 const ALLOWED_PAGES = new Set([
@@ -30,21 +31,24 @@ export default async function AdminPageEditor({
   ]);
 
   return (
-    <PageEditor
-      pageSlug={slug}
-      sections={sections.map((s) => ({
-        page: s.page,
-        section: s.section,
-        data: s.data,
-        enabled: s.enabled,
-        sort_order: s.sort_order,
-      }))}
-      galleryItems={galleryItems.map((g) => ({
-        // pg returns bigserial as a string; coerce to number for the editor.
-        id: Number(g.id),
-        title: g.title,
-        slug: g.slug,
-      }))}
-    />
+    <>
+      <AdminBackBar href="/admin" label="Back to dashboard" />
+      <PageEditor
+        pageSlug={slug}
+        sections={sections.map((s) => ({
+          page: s.page,
+          section: s.section,
+          data: s.data,
+          enabled: s.enabled,
+          sort_order: s.sort_order,
+        }))}
+        galleryItems={galleryItems.map((g) => ({
+          // pg returns bigserial as a string; coerce to number for the editor.
+          id: Number(g.id),
+          title: g.title,
+          slug: g.slug,
+        }))}
+      />
+    </>
   );
 }

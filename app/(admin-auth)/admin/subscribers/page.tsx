@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { getAllSubscribers, getSubscriberStats } from "@/lib/db/queries";
+import AdminBackBar from "@/components/AdminBackBar";
 import SubscribersPanel from "./SubscribersPanel";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +15,7 @@ export default async function AdminSubscribers() {
   ]);
   return (
     <>
+      <AdminBackBar href="/admin" label="Back to dashboard" />
       <div className="section-header">
         <h1 style={{ margin: 0 }}>Subscribers</h1>
         <a href="/api/admin/subscribers/export" className="btn">Export CSV</a>
