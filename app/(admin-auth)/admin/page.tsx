@@ -80,10 +80,6 @@ export default async function AdminDashboard() {
           <h3>Trade shows</h3>
           <span className="meta">Upcoming and past shows</span>
         </a>
-        <a href="/admin/testimonials" className="admin-card">
-          <h3>Reviews</h3>
-          <span className="meta">Testimonial cards</span>
-        </a>
       </div>
 
       <div className="section-header">

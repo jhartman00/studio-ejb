@@ -11,7 +11,6 @@ import { revalidateTag } from "next/cache";
 //   site_content:<page>    -> Public page sections for a single page.
 //   gallery                -> All gallery_items reads.
 //   shows                  -> All trade_shows reads.
-//   reviews                -> All testimonials reads.
 //   subscribers            -> Subscribers count / list reads.
 //   campaigns              -> Campaign list + detail reads.
 //
@@ -32,7 +31,6 @@ export const tags = {
   siteContent: (page: string) => `site_content:${page}`,
   gallery: () => "gallery",
   shows: () => "shows",
-  reviews: () => "reviews",
   subscribers: () => "subscribers",
   campaigns: () => "campaigns",
 } as const;
@@ -52,10 +50,6 @@ export function bumpShows(): void {
   revalidateTag(tags.shows());
   // Home renders the next upcoming show.
   revalidateTag(tags.siteContent("home"));
-}
-
-export function bumpReviews(): void {
-  revalidateTag(tags.reviews());
 }
 
 export function bumpSubscribers(): void {

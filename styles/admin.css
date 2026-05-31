@@ -605,3 +605,86 @@
 .admin-list-card .actions button {
   font-size: var(--fs-14);
 }
+
+.admin-sortable-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-12);
+}
+
+.admin-sortable-row {
+  background: var(--cream-100);
+  padding: var(--s-12) var(--s-16);
+  border-radius: var(--radius-card);
+  display: flex;
+  gap: var(--s-12);
+  align-items: flex-start;
+}
+
+.admin-sortable-row img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: var(--radius-card);
+}
+
+.admin-sortable-row .meta {
+  color: var(--ink-600);
+  font-size: var(--fs-14);
+}
+
+.admin-sortable-row .actions {
+  margin-top: var(--s-8);
+  display: flex;
+  gap: var(--s-8);
+}
+
+.admin-sortable-row .actions a,
+.admin-sortable-row .actions button {
+  font-size: var(--fs-14);
+}
+
+.drag-handle {
+  flex-shrink: 0;
+  background: var(--cream-50);
+  border: 1px solid var(--ink-900);
+  color: var(--ink-900);
+  border-radius: var(--radius-card);
+  width: var(--tap-target);
+  min-height: var(--tap-target);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  font-size: var(--fs-16);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+  background: var(--ink-900);
+  color: var(--cream-50);
+}
+
+.admin-back-bar {
+  margin-bottom: var(--s-12);
+}
+
+.admin-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-4);
+  font-size: var(--fs-14);
+  color: var(--ink-600);
+  text-decoration: none;
+  padding: var(--s-4) 0;
+  min-height: var(--tap-target);
+}
+
+.admin-back-link:hover,
+.admin-back-link:focus-visible {
+  color: var(--ink-900);
+  text-decoration: underline;
+}

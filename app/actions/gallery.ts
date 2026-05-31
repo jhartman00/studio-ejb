@@ -1,14 +1,15 @@
 "use server";
 
 import { headers } from "next/headers";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
-import { sql } from "@/lib/db";
+import { sql, query } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
-import { bumpGallery } from "@/lib/cache";
+import { bumpGallery, tags } from "@/lib/cache";
 import { slugify, uniqueSlug } from "@/lib/slug";
 import { titleFromFilename } from "@/lib/title-from-filename";
 import { optionalId } from "@/lib/zod-helpers";
+import { CATEGORY_VALUES } from "@/lib/content/categories";
 
 function originMatchesHeaders(h: Headers): boolean {
   const host = h.get("host");
@@ -43,7 +44,7 @@ const galleryUpsertSchema = z.object({
   slug: slugSchema.optional().default(""),
   title: z.string().max(200).optional().default(""),
   description: z.string().max(2000).optional().nullable(),
-  tag: z.enum(["ceramics", "art", "necklaces"]),
+  tag: z.enum(CATEGORY_VALUES),
   image_url: z.string().min(1).max(2000),
   image_alt: z.string().max(300).optional().nullable(),
   image_width: z.number().int().positive().nullable().optional(),
@@ -150,6 +151,50 @@ export async function galleryUpsertAction(
     revalidatePath("/gallery");
     revalidatePath("/");
     return { ok: true, id };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+export async function reorderGalleryAction(
+  orderedIds: number[],
+): Promise<ActionResult> {
+  const h = await headers();
+  if (!originMatchesHeaders(h)) return { ok: false, error: "bad origin" };
+  const adm = await requireAdmin();
+  if (!adm.ok) return { ok: false, error: "not authenticated" };
+
+  if (!Array.isArray(orderedIds) || orderedIds.length === 0) {
+    return { ok: true };
+  }
+  const ids = orderedIds.map((n) => Number(n));
+  if (ids.some((n) => !Number.isInteger(n) || n <= 0)) {
+    return { ok: false, error: "invalid id list" };
+  }
+
+  try {
+    // Single round trip: build a VALUES table of (id, idx) and join
+    // against gallery_items so each row gets its new display_order.
+    const valuesSql = ids
+      .map((_, i) => `($${i * 2 + 1}::bigint, $${i * 2 + 2}::int)`)
+      .join(", ");
+    const params: (number | string)[] = [];
+    ids.forEach((id, idx) => {
+      params.push(id);
+      params.push(idx);
+    });
+    await query(
+      `update gallery_items set display_order = data.idx
+       from (values ${valuesSql}) as data(id, idx)
+       where gallery_items.id = data.id`,
+      params,
+    );
+
+    bumpGallery();
+    revalidateTag(tags.gallery());
+    revalidatePath("/gallery");
+    revalidatePath("/");
+    return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : String(e) };
   }

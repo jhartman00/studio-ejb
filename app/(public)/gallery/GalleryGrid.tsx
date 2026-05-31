@@ -4,13 +4,17 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { GalleryItem } from "@/lib/db/queries";
 import SafeImage from "@/components/SafeImage";
+import {
+  CATEGORY_VALUES,
+  CATEGORY_LABELS,
+  isCategoryValue,
+  type CategoryValue,
+} from "@/lib/content/categories";
 
-type Tag = "all" | "ceramics" | "art" | "necklaces";
+type Tag = "all" | CategoryValue;
 const TAGS: { id: Tag; label: string }[] = [
   { id: "all", label: "All" },
-  { id: "ceramics", label: "Ceramics" },
-  { id: "art", label: "Art" },
-  { id: "necklaces", label: "Necklaces" },
+  ...CATEGORY_VALUES.map((id) => ({ id, label: CATEGORY_LABELS[id] })),
 ];
 
 export default function GalleryGrid({ items }: { items: GalleryItem[] }) {
@@ -20,8 +24,8 @@ export default function GalleryGrid({ items }: { items: GalleryItem[] }) {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const t = params.get("tag");
-    if (t === "ceramics" || t === "art" || t === "necklaces" || t === "all") {
-      setActiveTag(t);
+    if (t === "all" || (t && isCategoryValue(t))) {
+      setActiveTag(t as Tag);
     }
     const focusSlug = params.get("focus");
     if (focusSlug) {
@@ -77,24 +81,33 @@ export default function GalleryGrid({ items }: { items: GalleryItem[] }) {
           <p>New work coming soon.</p>
         </div>
       ) : (
-        <div className="gallery-grid">
+        <div className="gallery-masonry">
           {filtered.map((item, idx) => (
             <button
               key={item.id}
               type="button"
-              className="tile"
+              className="gallery-masonry-item"
               onClick={() => openItem(item)}
               aria-label={`View ${item.title}`}
             >
-              <SafeImage
-                src={item.image_url}
-                alt={item.image_alt || item.title}
-                width={item.image_width}
-                height={item.image_height}
-                sizes="(max-width: 768px) 50vw, 33vw"
-                priority={idx < 3}
-              />
-              <span className="tile-caption">{item.title}</span>
+              {item.image_width && item.image_height ? (
+                <SafeImage
+                  src={item.image_url}
+                  alt={item.image_alt || item.title}
+                  width={item.image_width}
+                  height={item.image_height}
+                  sizes="(max-width: 540px) 100vw, (max-width: 900px) 50vw, 33vw"
+                  priority={idx < 3}
+                />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={item.image_url}
+                  alt={item.image_alt || item.title}
+                  loading="lazy"
+                />
+              )}
+              <span className="gallery-masonry-caption">{item.title}</span>
             </button>
           ))}
         </div>
