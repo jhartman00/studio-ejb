@@ -115,6 +115,15 @@ export function pickSection<K extends SectionKey>(
 
 // --- gallery ----------------------------------------------------------
 
+// pg returns bigint columns as strings. Coerce id to a real number at the
+// data-source boundary so every consumer (gallery filters, featured-work
+// lookups, admin reorder, etc.) can use === and Array.includes safely.
+// Before this, the public home page's featured.gallery_item_ids (numbers)
+// vs gallery.id (strings) mismatch silently fell back to is_featured rows.
+function normalizeGalleryRow(row: GalleryItem): GalleryItem {
+  return { ...row, id: Number(row.id) };
+}
+
 export const getGalleryItems = () =>
   unstable_cache(
     async () => {
@@ -125,7 +134,7 @@ export const getGalleryItems = () =>
         from gallery_items
         order by display_order asc, id asc
       `;
-      return rows;
+      return rows.map(normalizeGalleryRow);
     },
     ["gallery_items", "all"],
     { tags: [tags.gallery()] },
@@ -139,7 +148,7 @@ export async function getGalleryItemById(id: number): Promise<GalleryItem | null
     from gallery_items
     where id = ${id}
   `;
-  return rows[0] ?? null;
+  return rows[0] ? normalizeGalleryRow(rows[0]) : null;
 }
 
 // --- trade shows ------------------------------------------------------
