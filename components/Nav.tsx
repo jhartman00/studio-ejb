@@ -3,11 +3,7 @@ import Link from "next/link";
 // Pure-CSS mobile drawer: hidden checkbox + adjacent-sibling combinator.
 // No JS needed on the public site.
 
-export default function Nav({
-  showReviews = true,
-}: {
-  showReviews?: boolean;
-}) {
+export default function Nav() {
   return (
     <nav className="nav" aria-label="Primary">
       <input id="nav-toggle" type="checkbox" aria-hidden="true" />
@@ -19,7 +15,6 @@ export default function Nav({
           <Link href="/gallery">Gallery</Link>
           <Link href="/about">About</Link>
           <Link href="/shows">Shows</Link>
-          {showReviews ? <Link href="/reviews">Reviews</Link> : null}
           <Link href="/contact">Contact</Link>
         </div>
         <label htmlFor="nav-toggle" className="nav-toggle" aria-label="Open menu">
@@ -30,7 +25,6 @@ export default function Nav({
         <Link href="/gallery">Gallery</Link>
         <Link href="/about">About</Link>
         <Link href="/shows">Shows</Link>
-        {showReviews ? <Link href="/reviews">Reviews</Link> : null}
         <Link href="/contact">Contact</Link>
       </div>
     </nav>

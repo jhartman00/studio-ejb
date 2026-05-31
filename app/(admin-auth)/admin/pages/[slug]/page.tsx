@@ -9,7 +9,6 @@ const ALLOWED_PAGES = new Set([
   "contact",
   "gallery",
   "shows",
-  "reviews",
 ]);
 
 export const dynamic = "force-dynamic";
@@ -40,7 +39,12 @@ export default async function AdminPageEditor({
         enabled: s.enabled,
         sort_order: s.sort_order,
       }))}
-      galleryItems={galleryItems.map((g) => ({ id: g.id, title: g.title, slug: g.slug }))}
+      galleryItems={galleryItems.map((g) => ({
+        // pg returns bigserial as a string; coerce to number for the editor.
+        id: Number(g.id),
+        title: g.title,
+        slug: g.slug,
+      }))}
     />
   );
 }

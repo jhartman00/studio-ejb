@@ -66,10 +66,6 @@ export default async function AdminDashboard() {
           <h3>Shows intro</h3>
           <span className="meta">Page intro copy</span>
         </a>
-        <a href="/admin/pages/reviews" className="admin-card">
-          <h3>Reviews intro</h3>
-          <span className="meta">Page intro copy</span>
-        </a>
       </div>
 
       <div className="section-header">

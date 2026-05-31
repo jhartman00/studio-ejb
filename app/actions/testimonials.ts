@@ -83,7 +83,6 @@ export async function testimonialUpsertAction(
     }
 
     bumpReviews();
-    revalidatePath("/reviews");
     return { ok: true, id };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : String(e) };
@@ -102,7 +101,6 @@ export async function testimonialDeleteAction(rawId: number | string): Promise<A
   try {
     await sql`delete from testimonials where id = ${id}`;
     bumpReviews();
-    revalidatePath("/reviews");
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : String(e) };

@@ -593,7 +593,7 @@ function SectionFields({
     );
   }
 
-  // Generic intro (gallery/shows/reviews/contact intro)
+  // Generic intro (gallery/shows/contact intro)
   return (
     <>
       <div className="field">

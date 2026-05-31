@@ -16,8 +16,10 @@ const heroSchema = z.object({
   cta_href: z.string().default(""),
 });
 
+// Note: pg returns bigint columns as strings. Use z.coerce.number() so that
+// `gallery_item_ids` survives a round trip without erroring on save.
 const featuredSchema = z.object({
-  gallery_item_ids: z.array(z.number()).default([]),
+  gallery_item_ids: z.array(z.coerce.number()).default([]),
 });
 
 const studioNoteSchema = z.object({
@@ -81,7 +83,6 @@ export const SECTION_SCHEMAS = {
   "contact:methods": contactMethodsSchema,
   "gallery:intro": introSchema,
   "shows:intro": introSchema,
-  "reviews:intro": introSchema,
   "campaign:footer_template": footerTemplateSchema,
 } as const;
 
